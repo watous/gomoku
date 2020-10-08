@@ -11,7 +11,7 @@ def normal(game):
         return turn % len(game.players)
     return action
 
-def swap(game):
+def swap(game): #for 2 players only
     def action(turn):
         if turn == 0:
             game.players[0].swap()

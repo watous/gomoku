@@ -1,7 +1,7 @@
 import random
 
 class Player:
-    """Base class for all gomoku players, both humans and bots."""
+    """Base class for all gomoku players, both human players and bots."""
     def __init__(self, game):
         self.game = game
 
@@ -44,13 +44,11 @@ Stone in `position` originally played by player with `player_index` has been rem
 
 class Spectator:
     """Spectators have some of the `Player` methods. Unlike players, they can be added and removed during the game."""
-    def __init__(self, game):
-        self.game = game
 
     def view(self):
         pass
     
-    def review(self, pos, player):
+    def review(self, position, player_index):
         pass
 
     def game_over(self):

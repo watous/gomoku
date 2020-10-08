@@ -10,7 +10,7 @@ bots = [Megabot]
 
 ## SYMBOL FUNCTIONS
 
-def cross(canvas, x, y, size): #x, y are center of the square, size is its side
+def cross(canvas, x, y, size): #x, y are the center of the square, size is its side
     result =  []
     half_size = size / 2 - 3
     kwargs = dict(fill = "blue", width = 3)
@@ -245,7 +245,7 @@ Args:
             self.canvas.delete(self.last_turn_highlight)
         return self.game.undo(2)
 
-    def review(self, pos, player_index):
+    def review(self, position, player_index):
         for i in self.history.pop():
             self.canvas.delete(i)
 

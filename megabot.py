@@ -5,8 +5,8 @@ from player import Player
 class Megabot(Player):
     def __init__(self, game):
         self.game = game
-        self.random_empty_pos = tuple(random.randint(0,i-1) for i in self.game.dimensions)
-        self.plan={self.random_empty_pos:0}
+        self.empty_position = tuple(random.randint(0,i-1) for i in self.game.dimensions)
+        self.plan={self.empty_position:0}
         #should initialize values
         #now it is rate(0)=0
 
@@ -23,7 +23,7 @@ class Megabot(Player):
                     maxplace.append(i)
                 maximum = self.plan[i]
         if maximum < 0: #best position is occupied
-            chosen = self.random_empty_pos
+            chosen = self.empty_position
         else:
             chosen = random.choice(maxplace)  
         if not self.play(chosen):
@@ -49,7 +49,7 @@ class Megabot(Player):
                 stones = {}
                 empty = set()
                 for j in range(self.game.win_length): #all coordinates in that winning positions 
-                    stone = self.game.plan.get(tuple(position),None)
+                    stone = self.game.plan.get(tuple(position), None)
                     if self.game.is_empty(tuple(position)) :
                         empty.add(tuple(position))
                     elif stone is None: #out of board
@@ -73,7 +73,7 @@ class Megabot(Player):
                             self.plan[i] = self.plan.get(i, 0)+ value
                 position = current[:]
                 if empty:
-                    self.random_empty_pos = empty.pop()
+                    self.empty_position = empty.pop()
             i = 0
             while i < lend and step[i] == 1:
                 step[i] = -1
