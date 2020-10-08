@@ -1,44 +1,49 @@
 import random
 
 class Player:
-    """Base class for all gomoku players, both human and computer."""
+    """Base class for all gomoku players, both humans and bots."""
     def __init__(self, game):
         self.game = game
 
-    def play(self, pos):
-        #don't touch
-        return self.game.play(pos, self)
+    def play(self, position):
+        #Don't touch!
+        """Try to place a stone to `position`, return False if you have to try again, True otherwise."""
+        return self.game.play(position, self)
 
-    def __str__(self):
-        return "player " + self.__class__.__name__
-    __repr__ = __str__
+    __repr__ = __str__ = lambda self : "player " + self.__class__.__name__
 
     def view(self):
-        """New symbol has been placed on the plan (it might be yours).
-It is in position self.game.history[-1] and from player number self.game.plan[self.game.history[-1]]."""
+        """Called whenever a new stone has been placed on the board.
+
+Its position is stored in self.game.history[-1].
+Index of the player who placed is stored in self.player_index.
+"""
         pass
     
-    def review(self, pos, player):
-        """Symbol in position pos from player has been removed by undo()."""
+    def review(self, position, player_index):
+        """Called when game's `undo` method is called.
+
+Stone in `position` originally played by player with `player_index` has been removed."""
         pass
     
     def turn(self):
-        """Your turn."""
+        """Called when your turn begins. Invoke `play` method here."""
         pass
 
     def choose(self):
-        """After swap: return the index of the player whose symbol you want to play with."""
+        """Called after opponents swap: return the index of the player whose symbol you want to play with."""
         return random.randint(0, len(self.game.players)-1)
 
     def swap(self):
-        """Prepare, your next three turns will be swap."""
+        """Called before your swap: prepare, your next three turns will be swap."""
         pass
 
     def game_over(self):
-        """Game ended."""
+        """Called when game is over."""
         pass
 
 class Spectator:
+    """Spectators have some of the `Player` methods. Unlike players, they can be added and removed during the game."""
     def __init__(self, game):
         self.game = game
 

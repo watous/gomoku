@@ -1,12 +1,10 @@
 from functools import reduce
-#from time import sleep
 import warnings
 
 ## OPTIONS FOR RULES
-"""These functions are passed to the rules attribute of Gomoku class.
-They take the Gomoku instance as an argument and return a function which
-takes turn index as an argument and returns the index of the player on turn.
-"""
+#These functions are passed to the rules attribute of Gomoku class.
+#They take the Gomoku instance as an argument and return a function which
+#takes turn index as an argument and returns the index of the player on turn.
 
 def normal(game):
     def action(turn):
@@ -30,108 +28,111 @@ rules_options = [normal, swap]
 ## MAIN CLASS
 
 class Gomoku:
+    """class running a gomoku game"""
     def __init__(self,
                  players=[],
                  dimensions=(15,15),
-                 winlength=5,
+                 win_length=5,
                  rules=normal,
                  spectators=[],
                  ):
-        """Class to run a gomoku game
-
+        """
 Args:
     players: list of player classes in order (they should be subclasses of `Player`)
-    dimensions (tuple): size of plan by axis
-    winlength: number of symbols in a row to win
-    rules: one of rules functions   
+    dimensions (tuple of integers): size of gameboard in each direction
+    win_length: number of stones in a row to win
+    rules: one of rules functions
+    spectators: list of spectator objects
+
+more on players and spectators in `player.py`
 """
         self.dimensions = dimensions
         self.size = reduce(lambda x,y:x*y, self.dimensions)
 
-        self.winlength = winlength
+        self.win_length = win_length
 
         self.players = [p(self) for p in players]
 
         self.rules = rules(self)
 
 
-        self.spectators = [s(self) for s in spectators]
+        self.spectators = spectators
+        for s in self.spectators:
+            s.game = self
         
-        self.plan = {} #souřadnice: číslo hráče
-        self.history = [] #souřadnice
-        self.win = None #None: hra v průběhu, -1: remíza, jinak: číslo vyhrávajícího hráče
-        self.winplace = None #[začátek výherní ntice, konec výherní ntice] (souřadnice)
+        self.plan = {} #{position: player_index  for all occupied positions}
+        self.history = [] #list of stones' positions in order of time of placing
+        self.won = None #None: game in progress, -1: draw (board filled), other: index of player who have won
+        self.winning_row = None #if game is won by someone: [position of one end of the winning row, position of its other end]
 
 
     def run(self):
-        while self.win is None:
-            self.played = False
-            #self.rules(len(self.history))
-            
+        while self.won is None:
+            self.played = False #whether the player has already placed a stone in the current turn
             self.player_index = self.rules(len(self.history))
             if not -len(self.players) <= self.player_index < len(self.players):
                 raise IndexError("player index out of range")
             player = self.players[self.player_index]
             player.turn()
             if (not self.played) and player == self.players[self.player_index]:
-                raise Exception #wait until played
-
+                raise Exception("player didn't place any stone in hteir turn")
+                # TODO rather than raising an exception, wait until the stone is placed
         for p in self.players:
             p.game_over()
         for s in self.spectators:
             s.game_over()
         return
 
-    def isempty(self, pos):
-        if pos in self.plan or len(pos) != len(self.dimensions):
+    def is_empty(self, position):
+        if position in self.plan or len(position) != len(self.dimensions):
             return False
-        for p,d in zip(pos, self.dimensions):
+        for p,d in zip(position, self.dimensions):
             if not 0 <= p < d:
                 return False
         return True
         
-    def play(self, pos, player=None):
+    def play(self, position, player=None):
         """return False on invalid move attempt, True otherwise"""
-        if self.win is not None or player != self.players[self.player_index]:
+        if self.won is not None or self.played or player != self.players[self.player_index]:
             #warnings.warn("{} tried to play out of their turn".format(player))
             return True
-        if not self.isempty(pos):
-            #warnings.warn("{} tried to make an invalid move to {}".format(player, pos))
+        if not self.is_empty(position):
+            #warnings.warn("{} tried to make an invalid move to {}".format(player, position))
             return False
 
-        self.history.append(pos)
-        self.plan[pos] = self.player_index
-        #zacatek overovani vyhry
+        self.history.append(position)
+        self.plan[position] = self.player_index
+        #checking for winning rows begins
         lend = len(self.dimensions)
         step = [-1 for _ in range(lend)]
-        pos = list(pos)
-        current = pos[:]
-        while step != [0 for _ in range (lend)]:
+        position = list(position)
+        current = position[:]
+        while any(step):
             ends = []
             row = -1
-            for drc in (-1,1):
-                ends.append(tuple(pos))
-                while self.plan.get(tuple(pos),None) == self.player_index:
-                    ends[-1] = tuple(pos)
+            for drc in (-1, 1):
+                ends.append(tuple(position))
+                while self.plan.get(tuple(position),None) == self.player_index:
+                    ends[-1] = tuple(position)
                     row += 1
                     for i in range(lend):
                         try:
-                            pos[i] += drc * step[i]
+                            position[i] += drc * step[i]
                         except IndexError:
-                            raise IndexError("pos had only {} dimensions({} needed)".format(len(pos),len(self.dimensions)))
-                pos = current[:]
-            if row == self.winlength:
-                self.win = self.player_index
-                self.winplace = ends
+                            raise IndexError("position had only {} dimensions({} needed)".format(len(position),len(self.dimensions)))
+                position = current[:]
+            if row >= self.win_length:
+                self.won = self.player_index
+                self.winning_row = ends
                 break
             i = 0
             while i < lend and step[i] == 1:
                 step[i] = -1
                 i += 1
             step[i] += 1
-        if len(self.plan) >= self.size:
-            self.win = -1 #remíza
-        #konec overovani vyhry
+        if len(self.plan) >= self.size: #board full
+            self.won = -1 #draw
+        #checking for winning rows ends
         self.played = True
         for p in self.players:
             p.view()
@@ -140,71 +141,33 @@ Args:
         return True
 
     def undo(self, repeat=1):
+        """go back `repeat` turns"""
         for i in range(repeat):
             if not self.history:
                 break
-            pos = self.history.pop()
-            self.player_index = self.plan[pos]
-            del self.plan[pos]
+            position = self.history.pop()
+            self.player_index = self.plan[position]
+            del self.plan[position]
             for p in self.players:
-                p.review(pos, self.player_index)
+                p.review(position, self.player_index)
             for s in self.spectators:
-                s.review(pos, self.player_index)
-        if self.win is not None:
-            self.win = None
-            self.winplace = None
+                s.review(position, self.player_index)
+        if self.won is not None:
+            self.won = None
+            self.winning_row = None
             self.run()
         return
 
-    def destroy(self):
-        self.win = -1
+    def end(self):
+        """to be called if the game is to be quitted without having been finished"""
+        self.won = -1
         self.players = self.spectators = []
         self.played = True
 
-    '''
-    def totext(self, name=None):
-        text = ["#piskvorky.py hra"]
-        if name is not None:
-            text.append(": " + name)
-        text.append("\n")
-        text.append(",".join(map(str, self.dimensions)))
-        text.append(" " + str(self.winlength) + "\n")
-        for p in self.history:
-            text.append(" ".join(",".join(map(str, p))))
-            text.append(";" + str(self.plan[p]) + "\n")
-        if self.win:
-            text.append("\n" + self.win + " " + ",".join(map(str,self.winplace[0])) + " " + ",".join(map(str,self.winplace[1])))
-        return "".join(text)
+    def __contains__(self, position):
+        return position in self.plan
 
-    #udělat:
-    def fromtext(text, *args, **kwargs):
-        """game.fromtext(Obj.totext()) -> Obj
-*args and **kwargs will be passed to the object."""
-        i = 0
-        for line in text.split("\n"):
-            if line[0]=="#":
-                continue
-            elif i == 0:
-                line = line.split()
-                new = Gomoku(dimensions=tuple(map(int, line[0].split(","))), winlength=int(line[1]), *args, **kwargs)
-            elif i == 1:
-                line = line.split()
-                for word in line:
-                    pos,_,player_index = word.partition(";")
-                    pos = tuple(map(int, pos.split(","))) 
-            elif i == 2:
-                line = line.split()
-                new.win = line[0]
-                new.winplace = (tuple(map(int, line[1].split(","))), tuple(map(int, line[2].split(","))))
-            i += 1
-        return new
-    '''
 
-    def __str__(self):
-        return str(self.__dict__)
-
-    def __contains__(self,pos):
-        return pos in self.plan
 
 if __name__ == "__main__":
     from player import Player
@@ -222,8 +185,8 @@ if __name__ == "__main__":
                 except Exception as e:
                     print(e)
         def game_over(self):
-            print(self.game.win)
+            print(self.game.won)
 
-    p = Gomoku (dimensions=[15,15], winlength=5, players=[Basic, Megabot])
+    p = Gomoku (dimensions=[15,15], win_length=5, players=[Basic, Megabot])
     print("enter coordinates separated by commas")
     p.run()
