@@ -9,7 +9,6 @@ class Megabot(Player):
         self.plan={self.empty_position:0}
         #should initialize values
         #now it is rate(0)=0
-
         self.history = []
 
     def turn(self):
@@ -27,7 +26,7 @@ class Megabot(Player):
         else:
             chosen = random.choice(maxplace)  
         if not self.play(chosen):
-            raise ValueError("Could not play to chosen coordinates({}), or win_length > max(dimensions)".format(chosen))
+            raise ValueError("Could not play to chosen coordinates({})".format(chosen))
         return
     
     def view(self,reverse=False,position=None,newstone=None):
@@ -36,8 +35,8 @@ class Megabot(Player):
         else:
             position = list(self.game.history[-1])
             self.history.append(self.plan.get(self.game.history[-1],0))
-            self.plan[self.game.history[-1]]=0 #must be tuple!
-            newstone = self.game.plan[self.game.history[-1]] #must be tuple!
+            self.plan[self.game.history[-1]]=0 #must be a tuple!
+            newstone = self.game.plan[self.game.history[-1]] #must be a tuple!
             self.plan[tuple(position)] = -1 #occupied
         lend = len(self.game.dimensions)
         step = [-1 for _ in range(lend)]
@@ -68,7 +67,7 @@ class Megabot(Player):
                         else:
                             for i in stones:
                                 value = -rate(stones[i])
-                        if reverse: value = -value #review(in undo)
+                        if reverse: value = -value #review (in undo)
                         for i in empty:                           
                             self.plan[i] = self.plan.get(i, 0)+ value
                 position = current[:]

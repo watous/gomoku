@@ -1,7 +1,7 @@
 from functools import reduce
-import warnings
+#import warnings
 
-## OPTIONS FOR RULES
+## OPTIONS OF RULES
 #These functions are passed to the rules attribute of Gomoku class.
 #They take the Gomoku instance as an argument and return a function which
 #takes turn index as an argument and returns the index of the player on turn.
@@ -23,7 +23,8 @@ def swap(game): #for 2 players only
         return turn % len(game.players)
     return action
 
-rules_options = [normal, swap]
+#add rules here
+rule_options = [normal, swap]
 
 ## MAIN CLASS
 
@@ -34,6 +35,7 @@ class Gomoku:
                  dimensions=(15,15),
                  win_length=5,
                  rules=normal,
+                 freestyle=False,
                  spectators=[],
                  ):
         """
@@ -42,26 +44,29 @@ Args:
     dimensions (tuple of integers): size of gameboard in each direction
     win_length: number of stones in a row to win
     rules: one of rules functions
+    freestyle (bool): whether rows with more than `win_length` stones win
     spectators: list of spectator objects
 
 more on players and spectators in `player.py`
 """
-        self.dimensions = dimensions
+        #here are some attributes useful for players and spectators:
+        
+        self.dimensions = dimensions #size of gameboard in each direction
         self.size = reduce(lambda x,y:x*y, self.dimensions)
 
-        self.win_length = win_length
+        self.win_length = win_length #number of stones in a row to win
 
         self.players = [p(self) for p in players]
 
         self.rules = rules(self)
-
+        self.freestyle = freestyle
 
         self.spectators = spectators
         for s in self.spectators:
             s.game = self
         
         self.plan = {} #{position: player_index  for all occupied positions}
-        self.history = [] #list of stones' positions in order of time of placing
+        self.history = [] #list of positions of stones in order of time of placing
         self.won = None #None: game in progress, -1: draw (board filled), other: index of player who have won
         self.winning_row = None #if game is won by someone: [position of one end of the winning row, position of its other end]
 
@@ -76,7 +81,7 @@ more on players and spectators in `player.py`
             player.turn()
             if (not self.played) and player == self.players[self.player_index]:
                 raise Exception("player didn't place any stone in hteir turn")
-                # TODO rather than raising an exception, wait until the stone is placed
+                # TODO  rather than raising an exception, wait until the stone is placed
         for p in self.players:
             p.game_over()
         for s in self.spectators:
@@ -121,7 +126,7 @@ more on players and spectators in `player.py`
                         except IndexError:
                             raise IndexError("position had only {} dimensions({} needed)".format(len(position),len(self.dimensions)))
                 position = current[:]
-            if row >= self.win_length:
+            if row == self.win_length or (self.freestyle and row >= self.win_length):
                 self.won = self.player_index
                 self.winning_row = ends
                 break
@@ -188,5 +193,6 @@ if __name__ == "__main__":
             print(self.game.won)
 
     p = Gomoku (dimensions=[15,15], win_length=5, players=[Basic, Megabot])
+    print("this is the simplest method of input, you most certainly want something else (tk_app.py)")
     print("enter coordinates separated by commas")
     p.run()
