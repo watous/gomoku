@@ -18,33 +18,30 @@ class Player:
 Its position is stored in self.game.history[-1].
 Index of the player who placed is stored in self.player_index.
 """
-        pass
     
     def review(self, position, player_index):
         """Called when game's `undo` method is called.
 
 Stone in `position` originally played by player with `player_index` has been removed."""
-        pass
     
     def turn(self):
-        """Called when your turn begins. Invoke `play` method here."""
-        pass
+        """Called when your turn begins. Invoke the `play` method here."""
 
+    #2 methods for swap rule:
     def swap(self):
         """Called before your swap: prepare, your next three turns will be swap."""
-        pass
 
     def choose(self):
-        """Called after opponents swap: return the index of the player whose symbol you want to play with."""
+        """Called after opponent's swap: return the index of the player whose symbol you want to play with."""
         return random.randint(0, len(self.game.players)-1)
 
     def game_over(self):
         """Called when game is over."""
-        pass
 
 class Spectator:
-    """Spectators have some of the `Player` methods. Unlike players, they can be added and removed during the game."""
-
+    """Spectators have some of the `Player` methods.
+Unlike players, they can be added and removed during the game.
+"""
     def view(self):
         pass
     
