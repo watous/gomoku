@@ -6,7 +6,7 @@ from random import choice
 
 from megabot import Megabot
 # add your computer player here:
-bots = [Megabot, Player]
+bots = [Megabot]
 
 """
 GUI instructions:
