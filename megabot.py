@@ -10,17 +10,15 @@ class Megabot(Player):
         #should initialize values
         #now it is rate(0)=0
         self.history = []
+        self.randomness = 4
 
     def turn(self):
-        maximum = -100
+        maximum = max(self.plan.values())
         maxplace = []
         for i in self.plan:
-            if self.plan[i] >= maximum:
-                if self.plan[i] > maximum:
-                    maxplace = [i]
-                else:
-                    maxplace.append(i)
-                maximum = self.plan[i]
+            if 0 <= self.plan[i] >= maximum - self.randomness:
+                maxplace.append(i)
+                    
         if maximum < 0: #best position is occupied
             chosen = self.empty_position
         else:
