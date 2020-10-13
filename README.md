@@ -1,5 +1,5 @@
 # gomoku
-Python imlementation of gomoku with possibility to add own computer players.
+Python implementation of gomoku with possibility to add custom computer players.
 
 **To play:** download and run `tk_app.py`, no external packages are neccessary.
  - click to play
