@@ -1,4 +1,5 @@
 from functools import reduce
+import weakref
 #import warnings
 
 ## OPTIONS OF RULES
@@ -16,10 +17,11 @@ def swap(game): #for 2 players only
         if turn == 0:
             game.players[0].swap()
         elif turn in (1,2):
-            game.players = game.players[::-1]
+            game.players.reverse()
         elif turn == 3:
             if 1 != game.players[1].choose():
-                game.players = game.players[::-1]
+                game.players.reverse()
+        #if game.players:
         return turn % len(game.players)
     return action
 
@@ -47,45 +49,49 @@ Args:
     freestyle (bool): whether rows with more than `win_length` stones win
     spectators: list of spectator objects
 
-more on players and spectators in `player.py`
+more on players and spectators in `player.md`
+
+invoke `run` to start the game.
 """
         #here are some attributes useful for players and spectators:
-        
+
         self.dimensions = dimensions #size of gameboard in each direction
         self.size = reduce(lambda x,y:x*y, self.dimensions)
 
         self.win_length = win_length #number of stones in a row to win
 
-        self.players = [p(self) for p in players]
+        self.players = [p(weakref.proxy(self)) for p in players] #
 
-        self.rules = rules(self)
+        self.rules = rules(weakref.proxy(self))
         self.freestyle = freestyle
 
         self.spectators = spectators
         for s in self.spectators:
-            s.game = self
+            s.game = weakref.proxy(self)
         
         self.plan = {} #{position: player_index  for all occupied positions}
         self.history = [] #list of positions of stones in order of time of placing
-        self.won = None #None: game in progress, -1: draw (board filled), other: index of player who have won
+        self.won = None #None: game in progress, -2: end forced, -1: draw (board filled), other: index of player who have won
         self.winning_row = None #if game is won by someone: [position of one end of the winning row, position of its other end]
-
 
     def run(self):
         while self.won is None:
             self.played = False #whether the player has already placed a stone in the current turn
             self.player_index = self.rules(len(self.history))
+            if self.won is not None: #ending game in turn
+                break
             if not -len(self.players) <= self.player_index < len(self.players):
                 raise IndexError("player index out of range")
             player = self.players[self.player_index]
             player.turn()
             if (not self.played) and player == self.players[self.player_index]:
-                raise Exception("player didn't place any stone in hteir turn")
+                raise Exception("{} didn't place any stone in their turn".format(self.players[self.player_index]))
                 # TODO  rather than raising an exception, wait until the stone is placed
-        for p in self.players:
-            p.game_over()
-        for s in self.spectators:
-            s.game_over()
+        if self.won != -2:
+            for p in self.players:
+                p.game_over()
+            for s in self.spectators:
+                s.game_over()
         return
 
     def is_empty(self, position):
@@ -165,8 +171,8 @@ more on players and spectators in `player.py`
 
     def end(self):
         """to be called if the game is to be quitted without having been finished"""
-        self.won = -1
-        self.players = self.spectators = []
+        self.won = -2
+        #self.players = self.spectators = []
         self.played = True
 
     def __contains__(self, position):
@@ -193,6 +199,6 @@ if __name__ == "__main__":
             print(self.game.won)
 
     p = Gomoku (dimensions=[15,15], win_length=5, players=[Basic, Megabot])
-    print("this is the simplest method of input, you most certainly want something else (tk_app.py)")
+    print("this is the simplest input method, you most certainly want something else (tk_app.py)")
     print("enter coordinates separated by commas")
     p.run()

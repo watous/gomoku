@@ -1,12 +1,12 @@
 from tkinter import *
 from gomoku import *
 from player import Player
-from megabot import Megabot
-
 from itertools import product
 from random import choice
 
-bots = [Megabot]
+from megabot import Megabot
+# add your computer player here:
+bots = [Megabot, Player]
 
 """
 GUI instructions:
@@ -115,7 +115,7 @@ class App:
     def __init__(self, master, canvas_width=300, canvas_height=None,
                 appearance_options=appearance_options,
                 rule_options=rule_options, num_players=2,
-                x=15, y=None, win_length=5, #this can be changed in settings
+                x=15, y=None, win_length=5, freestyle=False, #these can be changed in settings
                 ):
         """
 Args:
@@ -135,6 +135,8 @@ Args:
         self.y.set(y if y is not None else x)
         self.win_length = IntVar()
         self.win_length.set(win_length)
+        self.freestyle = BooleanVar()
+        self.freestyle.set(freestyle)
 
         self.canvas_width = canvas_width
         self.canvas_height = canvas_height if canvas_height is not None else self.canvas_width
@@ -155,9 +157,11 @@ Args:
                 while not me.play((self.click_x,self.click_y)):
                     self.master.wait_variable(self.click_var)
             def choose(me):
-                self.master.wait_variable(self.click_var)
+                self.click_x = None #this loop must run at least once:
                 while not (self.click_x,self.click_y) in me.game.plan:
                     self.master.wait_variable(self.click_var)
+                    if me.game.won is not None:
+                        return 0
                 return me.game.plan[(self.click_x,self.click_y)]
 
         self.player = Me
@@ -196,12 +200,13 @@ Args:
         #self.settings.geometry(f"+{self.master.winfo_x() + 50}+{self.master.winfo_y() + 50}")
         self.settings.protocol("WM_DELETE_WINDOW", self.settings.withdraw) #don't close the settings, just hide them
 
-        Label(self.settings, text="PLAYERS", padx=10).pack(anchor="w")
-
-        self.POlist = Listbox(self.settings, selectmode="extended")
+        frame = Frame(self.settings, padx=10)
+        Label(frame, text="PLAYERS").pack(anchor="w")
+        self.POlist = Listbox(frame, selectmode="extended", width=30, background="white", selectbackground="gray75", selectforeground="black")
         for i,c in enumerate(self.player_options):
             self.POlist.insert(END, ", ".join(x.__name__ for x in c))
-        self.POlist.pack(anchor="w", padx=10, fill="both", expand="yes")
+        self.POlist.pack(anchor="w", fill="both", expand="yes", side="left")
+        frame.pack(side="right", anchor="n", fill="both", expand="yes",)
 
         Label(self.settings, text="APPEARANCE", padx=10).pack(anchor="w")
         for i in self.appearance_options:
@@ -213,10 +218,12 @@ Args:
             Radiobutton(self.settings, text=c.__name__,
                         variable=self.rules, value=i).pack(anchor="w", padx=10)
 
+        
+        Label(self.settings, text="Length of winning row:", padx=10).pack(anchor="w")
         frame = Frame(self.settings)
-        Label(frame, text="Length of winning row", padx=10).pack(side="left", anchor="w")
-        Entry(frame, width=5, textvariable=self.win_length).pack(side="left")
-        frame.pack(anchor="w", pady=5)
+        Entry(frame, width=5, textvariable=self.win_length).pack(side="left", anchor="w")
+        Checkbutton(frame, text="or longer", variable=self.freestyle).pack(anchor="w")
+        frame.pack(anchor="w", pady=5, padx=20)
 
         frame = Frame(self.settings)
         Label(frame, text="Width").pack(side="left", anchor="w")
@@ -228,10 +235,11 @@ Args:
         Button(self.settings, text="New Game", command=self.reset).pack(pady=10)
 
     def new_game(self, *args, **kwargs):
-        Gomoku(self.player_options[choice(self.POlist.curselection() or [0])],
+        self.game = Gomoku(self.player_options[choice(self.POlist.curselection() or [0])],
                               dimensions=(self.x.get(),self.y.get()),
                               win_length=self.win_length.get(),
                               rules=self.rule_options[self.rules.get()],
+                              freestyle=self.freestyle.get(),
                               spectators=[self])
 
     def draw_board(self):
@@ -276,7 +284,7 @@ Args:
             #mark the winning row
             winplace1 = self.to_canvas_pos(*self.game.winning_row[0])
             winplace2 = self.to_canvas_pos(*self.game.winning_row[1])
-            self.canvas.create_line((*winplace1, *winplace2), width = 3)
+            self.canvas.create_line((*winplace1, *winplace2), width=3, fill="orange")
         
     def click(self, event):
         if self.settings.state() == "normal":
@@ -300,6 +308,7 @@ Args:
         self.settings.withdraw()
         self.game.end()
         self.click_var.set(True)
+        del self.game
         self.canvas.delete(ALL)
         self.history = []
         self.new_game()
@@ -316,6 +325,6 @@ if __name__ == "__main__":
     
     root = Tk()
     app = App(root,
-              x=x, y=y, win_length=win_length,
+              x=x, y=y, win_length=win_length, num_players=2,
               canvas_width = canvas_width, canvas_height = canvas_height)
     root.mainloop()
