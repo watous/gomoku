@@ -302,11 +302,10 @@ Args:
     def undo(self, event=None):
         if self.last_turn_highlight:
             self.canvas.delete(self.last_turn_highlight)
-        player_index = self.game.player_index - 1
-        while type(self.game.players[player_index]) != self.player and player_index != self.game.player_index:
-            player_index -= 1
-            player_index %= len(self.game.players)
-        self.game.undo(1+((self.game.player_index - player_index - 1)%len(self.game.players)))
+        i = 1
+        while i < len(self.game.players) and type(self.game.players[self.game.plan[self.game.history[-i]]]) != self.player:
+            i += 1
+        self.game.undo(i)
         self.click_var.set(True)
            
     def reset(self, event=None):
