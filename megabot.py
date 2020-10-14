@@ -10,7 +10,7 @@ class Megabot(Player):
         #should initialize values
         #now it is rate(0)=0
         self.history = []
-        self.randomness = 4
+        self.randomness = 3
 
     def turn(self):
         maximum = max(self.plan.values())
