@@ -21,7 +21,6 @@ def swap(game): #for 2 players only
         elif turn == 3:
             if 1 != game.players[1].choose():
                 game.players.reverse()
-        #if game.players:
         return turn % len(game.players)
     return action
 
@@ -167,12 +166,13 @@ invoke `run` to start the game.
             self.won = None
             self.winning_row = None
             self.run()
+        else:
+            self.played = True
         return
 
     def end(self):
         """to be called if the game is to be quitted without having been finished"""
         self.won = -2
-        #self.players = self.spectators = []
         self.played = True
 
     def __contains__(self, position):

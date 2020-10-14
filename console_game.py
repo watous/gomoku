@@ -2,6 +2,8 @@ from gomoku import *
 from player import Player
 from megabot import Megabot as Bot
 
+"""Enter *z or *b to undo, *e or *q to end game"""
+
 def console_player (stones=["x","o"], empty="."):
     class ConsolePlayer(Player):
         def __init__(self, game):
@@ -52,18 +54,18 @@ def console_player (stones=["x","o"], empty="."):
                 print("YOU WIN")
             else:
                 print("YOU LOSE")
-
-        def review(self, _, __):
-            return self.visualize()
         
         def turn(self):
             self.visualize()
             while True: #just waiting for correct input
                 x=self.stin(keystart="*")
                 if isinstance(x,str):
-                    if x in ("b","z"): #undo
-                        self.game.undo(2)
-                    if x=="e": #quit game
+                    if x in tuple("bzu"): #undo
+                        self.game.undo()
+                        while type(self.game.players[self.game.player_index]) != type(self):
+                            self.game.undo()
+                        return
+                    if x in tuple("eqx"): #quit game
                         self.game.end()
                         return
                         #fails if you try to undo after that (game.wonplace = None)

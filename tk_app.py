@@ -156,12 +156,13 @@ Args:
                 self.master.wait_variable(self.click_var)
                 while not me.play((self.click_x,self.click_y)):
                     self.master.wait_variable(self.click_var)
+
             def choose(me):
                 self.click_x = None #this loop must run at least once:
                 while not (self.click_x,self.click_y) in me.game.plan:
                     self.master.wait_variable(self.click_var)
-                    if me.game.won is not None:
-                        return 0
+                    if not self.click_var.get():
+                        return
                 return me.game.plan[(self.click_x,self.click_y)]
 
         self.player = Me
@@ -241,6 +242,7 @@ Args:
                               rules=self.rule_options[self.rules.get()],
                               freestyle=self.freestyle.get(),
                               spectators=[self])
+        self.symbols = self.appearance_options[self.appearance.get()][1]
 
     def draw_board(self):
         width = self.x.get()
@@ -264,7 +266,7 @@ Args:
                 int(round((y - self.board_top) / self.square_size)))
 
     def view(self):
-        symbol = self.appearance_options[self.appearance.get()][1][self.game.plan[self.game.history[-1]]]
+        symbol = self.symbols[self.game.plan[self.game.history[-1]]]
         x, y = self.game.history[-1]
         x, y = self.to_canvas_pos(x, y)
         half_size = self.square_size / 2
@@ -300,15 +302,17 @@ Args:
     def undo(self, event=None):
         if self.last_turn_highlight:
             self.canvas.delete(self.last_turn_highlight)
-        self.game.undo()
-        while type(self.game.players[self.game.player_index]) != self.player:
-            self.game.undo()
-            
+        player_index = self.game.player_index - 1
+        while type(self.game.players[player_index]) != self.player and player_index != self.game.player_index:
+            player_index -= 1
+            player_index %= len(self.game.players)
+        self.game.undo(1+((self.game.player_index - player_index - 1)%len(self.game.players)))
+        self.click_var.set(True)
+           
     def reset(self, event=None):
         self.settings.withdraw()
         self.game.end()
-        self.click_var.set(True)
-        del self.game
+        self.click_var.set(False)
         self.canvas.delete(ALL)
         self.history = []
         self.new_game()

@@ -10,7 +10,7 @@ Python implementation of gomoku with possibility to add custom computer players.
     - if you select more than one option from players,
       random selected option will be used for each game
 
-If you can't run `tk_app.py` for any reason, use `console_player.py`.
+If you can't run `tk_app.py` for any reason, use `console_game.py`.
 
 See instructions on how to create custom computer players in `player.md`. It is also possible to define your own design of board and stones on tkinter canvas, define your own opening rule,
 play in more (or less) than 2 players and play in more (or less) than 2 dimensions (not in the GUI, though). Search in the files for that.
