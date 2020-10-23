@@ -1,12 +1,12 @@
 # gomoku
-Python implementation of gomoku with possibility to add custom computer players.
+Python implementation of gomoku with possibility to add custom computer players. One simple computer player is included.
 
 **To play:** download and run `tk_app.py`, no external packages are neccessary.
  - click to play
  - press <kbd>Ctrl</kbd>+<kbd>Z</kbd> to undo a move
  - when game's over, click to start a new game
  - rightclick to open settings
-    - in settings you can control players (computer/human), appearance, opening rule, size of the board and length of winning row
+    - in settings you can control players (computer/human), appearance, opening rule (none/swap), size of the board and length of winning row
     - if you select more than one option from players,
       random selected option will be used for each game
 
