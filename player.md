@@ -5,7 +5,7 @@
 - Look in `player.py` for comments on methods of `Player`.
 - Redefine the `view` method if your player needs to calculate something after each new stone placed.
   - If you do it, then eventually redefine the `review` method to support undoing.
-- **Redefine the `turn` method.** This the only one that is really neccessary.
+- **Redefine the `turn` method.** This is the only one that is really neccessary.
   - Choose a position in which you want to place a stone using your algorithm.
   - Pass the position to `self.play`, if you get `True`, return,
     if you get `False`, then it's impossible to place a stone to the chosen position
