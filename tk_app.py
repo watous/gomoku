@@ -407,7 +407,7 @@ if __name__ == "__main__":
     y = x
     win_length = 5
     canvas_width = 500
-    canvas_height = 700#canvas_width
+    canvas_height = canvas_width
     
     root = Tk()
     app = App(root,
