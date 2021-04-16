@@ -157,7 +157,7 @@ appearance_options = {
            "orange"),
     }
 if SKINS_AVAILABLE: appearance_options.update({
-    "example_skin.png": Skin("skins/example_skin.png"),
+    "skins/example.png": Skin("skins/example.png"),
     "custom skin": CustomSkin(),
     })
 # {name of the option: (board function,
