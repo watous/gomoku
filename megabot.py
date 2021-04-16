@@ -10,7 +10,7 @@ class Megabot(Player):
         #should initialize values
         #now it is rate(0)=0
         self.history = []
-        self.randomness = 3
+        self.randomness = 0
 
     def turn(self):
         maximum = max(self.plan.values())
@@ -78,6 +78,11 @@ class Megabot(Player):
             step[i] += 1
         if reverse:
             self.plan[tuple(position)] = self.history.pop()
+        """for i in range(self.game.dimensions[0]):
+            for j in range(self.game.dimensions[1]):
+                print(str(self.plan.get((j,i),0)).rjust(3),end="")
+            print()
+        print()"""
         return
 
     def review(self, position, stone):
@@ -85,5 +90,5 @@ class Megabot(Player):
 
 
 def rate(length):
-    return 3**(length-1) if length else 0
+    return 5**(length-1) if length else 0
     #normally just 3**length

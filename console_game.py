@@ -1,10 +1,10 @@
 from gomoku import *
 from player import Player
-from megabot import Megabot as Bot
+from megabot import Megabot
 
-"""Enter *z or *b to undo, *e or *q to end game"""
+"""Enter *z,*b or *u to undo, *e, *q or *x to quit game"""
 
-def console_player (stones=["x","o"], empty="."):
+def console_player (stones="xovzn", empty="."):
     class ConsolePlayer(Player):
         def __init__(self, game):
             self.game = game
@@ -59,14 +59,14 @@ def console_player (stones=["x","o"], empty="."):
             self.visualize()
             while True: #just waiting for correct input
                 x=self.stin(keystart="*")
-                if isinstance(x,str):
-                    if x in tuple("bzu"): #undo
+                if isinstance(x, str):
+                    if x in "bzu": #undo
                         self.game.undo()
                         while type(self.game.players[self.game.player_index]) != type(self):
                             self.game.undo()
                         return
-                    if x in tuple("eqx"): #quit game
-                        self.game.end()
+                    if x in "eqx": #quit game
+                        self.game.quit()
                         return
                         #fails if you try to undo after that (game.wonplace = None)
                 elif self.play(x):
@@ -74,17 +74,21 @@ def console_player (stones=["x","o"], empty="."):
 
         def choose(self):
             self.visualize()
+            options = self.stones[:len(self.game.players)]
             while True:
-                x = input("/".join(self.stones)+" ")
-                if x in self.stones:
-                    return self.stones.index(x)
+                x = input("/".join(options)+"? ")
+                if x in options:
+                    return options.index(x)
             
 
-        def stin (self,keystart=False,laststyle=lambda x:x,last=None):
+        def stin (self, keystart=False, laststyle=lambda x:x, last=None):
             if last is None:
                 if self.game.history:
                     last=self.game.history[-1]
-                    last=" "+chr(last[0]+97)+str(last[1]+1).ljust (3)
+                    if len(last) == 2:
+                        last=" "+chr(last[0]+97)+str(last[1]+1).ljust (3)
+                    else:
+                        last=" "+",".join(map(lambda x:str(x+1), last))+" "
                 else:
                     last=" "*5
             while True:
@@ -114,10 +118,13 @@ def console_player (stones=["x","o"], empty="."):
     return ConsolePlayer
 
 if __name__ == "__main__":
+    print("when playing: enter *z to undo, *q to quit game")
+    print("now: enter anything as YES and nothing as NO")
+
     while True:
-        rules = normal if input("without swap? ") else swap
-        players = [Bot, console_player()]
+        rule = normal if input("without swap? ") else swap
+        players = [Megabot, console_player()]
         if input("begin? "):
             players = players [::-1]
-        p = Gomoku(players=players, rules=rules, dimensions=[15,15], win_length=5)
+        p = Gomoku(players=players, rule=rule, dimensions=[15,15], win_length=5)
         p.run()

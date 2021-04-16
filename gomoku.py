@@ -3,28 +3,26 @@ import weakref
 #import warnings
 
 ## OPTIONS OF RULES
-#These functions are passed to the rules attribute of Gomoku class.
-#They take the Gomoku instance as an argument and return a function which
-#takes turn index as an argument and returns the index of the player on turn.
 
-def normal(game):
-    def action(turn):
-        return turn % len(game.players)
-    return action
+# rule(game, turn_index)
+#   This function is passed to the rule attribute of Gomoku class.
+#   It takes `game`, the `Gomoku` instance, and `turn_index` as arguments
+#   and return the index of the player on turn.
 
-def swap(game): #for 2 players only
-    def action(turn):
-        if turn == 0:
+def normal(game, turn_index):
+    return turn_index % len(game.players)
+
+def swap(game, turn_index): #for 2 players only
+        if turn_index == 0:
             game.players[0].swap()
-        elif turn in (1,2):
+        elif turn_index in (1,2):
             game.players.reverse()
-        elif turn == 3:
+        elif turn_index == 3:
             if 1 != game.players[1].choose():
                 game.players.reverse()
-        return turn % len(game.players)
-    return action
+        return turn_index % len(game.players)
 
-#add rules here
+# add rules here
 rule_options = [normal, swap]
 
 ## MAIN CLASS
@@ -35,7 +33,7 @@ class Gomoku:
                  players=[],
                  dimensions=(15,15),
                  win_length=5,
-                 rules=normal,
+                 rule=normal,
                  freestyle=False,
                  spectators=[],
                  ):
@@ -44,7 +42,7 @@ Args:
     players: list of player classes in order (they should be subclasses of `Player`)
     dimensions (tuple of integers): size of gameboard in each direction
     win_length: number of stones in a row to win
-    rules: one of rules functions
+    rule: opening rule - one of rule functions
     freestyle (bool): whether rows with more than `win_length` stones win
     spectators: list of spectator objects
 
@@ -53,15 +51,15 @@ more on players and spectators in `player.md`
 invoke `run` to start the game.
 """
         #here are some attributes useful for players and spectators:
-
+        
         self.dimensions = dimensions #size of gameboard in each direction
         self.size = reduce(lambda x,y:x*y, self.dimensions)
 
         self.win_length = win_length #number of stones in a row to win
 
-        self.players = [p(weakref.proxy(self)) for p in players] #
+        self.players = [p(weakref.proxy(self)) for p in players] 
 
-        self.rules = rules(weakref.proxy(self))
+        self.rule = rule
         self.freestyle = freestyle
 
         self.spectators = spectators
@@ -76,7 +74,7 @@ invoke `run` to start the game.
     def run(self):
         while self.won is None:
             self.played = False #whether the player has already placed a stone in the current turn
-            self.player_index = self.rules(len(self.history))
+            self.player_index = self.rule(self, len(self.history))
             if self.won is not None: #ending game in turn
                 break
             if not -len(self.players) <= self.player_index < len(self.players):
@@ -85,7 +83,7 @@ invoke `run` to start the game.
             player.turn()
             if (not self.played) and player == self.players[self.player_index]:
                 raise Exception("{} didn't place any stone in their turn".format(self.players[self.player_index]))
-                # TODO  rather than raising an exception, wait until the stone is placed
+                # TODO: rather than raising an exception, wait until the stone is placed
         if self.won != -2:
             for p in self.players:
                 p.game_over()
@@ -102,7 +100,7 @@ invoke `run` to start the game.
         return True
         
     def play(self, position, player=None):
-        """return False on invalid move attempt, True otherwise"""
+        """try to place a stone, return True on success, False on invalid move attempt"""
         if self.won is not None or self.played or player != self.players[self.player_index]:
             #warnings.warn("{} tried to play out of their turn".format(player))
             return True
@@ -140,7 +138,7 @@ invoke `run` to start the game.
                 step[i] = -1
                 i += 1
             step[i] += 1
-        if len(self.plan) >= self.size: #board full
+        if len(self.plan) >= self.size and self.won is None: #board full
             self.won = -1 #draw
         #checking for winning rows ends
         self.played = True
@@ -170,14 +168,13 @@ invoke `run` to start the game.
             self.played = True
         return
 
-    def end(self):
+    def quit(self):
         """to be called if the game is to be quitted without having been finished"""
         self.won = -2
         self.played = True
 
     def __contains__(self, position):
         return position in self.plan
-
 
 
 if __name__ == "__main__":
@@ -199,6 +196,7 @@ if __name__ == "__main__":
             print(self.game.won)
 
     p = Gomoku (dimensions=[15,15], win_length=5, players=[Basic, Megabot])
-    print("this is the simplest input method, you most certainly want something else (tk_app.py)")
-    print("enter coordinates separated by commas")
+    print("""this is the simplest input method
+you most certainly want something else (tk_app.py or console_game.py)""")
+    print("\nenter coordinates separated by commas")
     p.run()
