@@ -411,6 +411,6 @@ if __name__ == "__main__":
     
     root = Tk()
     app = App(root,
-              x=x, y=y, win_length=win_length, num_players=[2,3,4],
+              x=x, y=y, win_length=win_length, num_players=[2,3],
               canvas_width = canvas_width, canvas_height = canvas_height)
     root.mainloop()
