@@ -3,16 +3,16 @@
 
 - Create a child class of `Player` from `player.py`.
 - Look in `player.py` for comments on methods of `Player`.
-- Redefine the `view` method if your player needs to calculate something after each new stone placed.
+- Redefine the `view` method if your player needs to calculate something when each new stone is placed.
   - If you do it, then eventually redefine the `review` method to support undoing.
-- **Redefine the `turn` method.** This is the only one that is really neccessary.
-  - Choose a position in which you want to place a stone using your algorithm.
-  - Pass the position to `self.play`, if you get `True`, return,
-    if you get `False`, then it's impossible to place a stone to the chosen position
+- **Redefine the `turn` method.** This is the only thing that is really neccessary.
+  - Choose a position in which you want to place a stone, using your algorithm.
+  - Pass the position to `self.play`; if you get `True`, you have placed the stone, so `return`,
+    but if you get `False`, then it's impossible to place a stone in the chosen position
     for some reason and you need to try again.
   - You can use these attributes of `self.game`:
     - `self.game.dimensions` is a tuple of gameboard sizes by axis. So for the standard 2-dimensional
-    board, it is basically (width, height).
+    board, it is simply (width, height).
     - `self.game.win_length` is how long row of your stones you need to win.
     Longer rows win only if `self.game.freestyle` is `True`.
     - `self.game.plan` is a dictionary containing all occupied positions as keys and
