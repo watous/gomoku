@@ -25,6 +25,8 @@ class Megabot(Player):
             chosen = random.choice(maxplace)  
         if not self.play(chosen):
             raise ValueError("Could not play to chosen coordinates({})".format(chosen))
+        if len(self.history) >= 3:
+            self.randomness = 0
         return
     
     def view(self,reverse=False,position=None,newstone=None):
@@ -87,6 +89,10 @@ class Megabot(Player):
 
     def review(self, position, stone):
         return self.view(reverse=True, position=position, newstone=stone)
+
+    def swap(self):
+        self.randomness = 10
+        
 
 
 def rate(length):
