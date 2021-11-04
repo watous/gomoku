@@ -96,5 +96,5 @@ class Megabot(Player):
 
 
 def rate(length):
-    return 5**(length-1) if length else 0
+    return 3**(length-1) if length else 0
     #normally just 3**length
